@@ -1,3 +1,44 @@
+
+
+<script lang="ts" setup>
+import { ref } from "vue";
+import { useAuthUserStore } from "@/stores/authUser";
+import { useToast } from "vue-toastification";
+import { requiredValidator, emailValidator } from "@/lib/validator";
+import router from "@/router";
+
+const loginEmail = ref("");
+const loginPassword = ref("");
+const isPasswordVisible = ref(false);
+const formAction = ref({ formProcess: false });
+const toast = useToast();
+
+const authUserStore = useAuthUserStore();
+
+const onFormSubmit = async (event: SubmitEvent): Promise<void> => {
+  event.preventDefault();
+  formAction.value.formProcess = true;
+
+  try {
+    const { error } = await authUserStore.signIn(
+      loginEmail.value,
+      loginPassword.value
+    );
+    if (error) {
+      throw new Error(typeof error === "string" ? error : error.message);
+    }
+
+    toast.success("Login successful");
+    router.push("/home");
+  } catch (err) {
+    toast.error(
+      `Login error: ${err instanceof Error ? err.message : "An error occurred"}`
+    );
+  } finally {
+    formAction.value.formProcess = false;
+  }
+};
+</script>
 <template>
   <v-col cols="12" md="6">
     <v-card-text class="mt-12">
@@ -73,47 +114,6 @@
     </v-card-text>
   </v-col>
 </template>
-
-<script lang="ts" setup>
-import { ref } from "vue";
-import { useAuthUserStore } from "@/stores/authUser";
-import { useToast } from "vue-toastification";
-import { requiredValidator, emailValidator } from "@/lib/validator";
-import router from "@/router";
-
-const loginEmail = ref("");
-const loginPassword = ref("");
-const isPasswordVisible = ref(false);
-const formAction = ref({ formProcess: false });
-const toast = useToast();
-
-const authUserStore = useAuthUserStore();
-
-const onFormSubmit = async (event: SubmitEvent): Promise<void> => {
-  event.preventDefault();
-  formAction.value.formProcess = true;
-
-  try {
-    const { error } = await authUserStore.signIn(
-      loginEmail.value,
-      loginPassword.value
-    );
-    if (error) {
-      throw new Error(typeof error === "string" ? error : error.message);
-    }
-
-    toast.success("Login successful");
-    router.push("/home");
-  } catch (err) {
-    toast.error(
-      `Login error: ${err instanceof Error ? err.message : "An error occurred"}`
-    );
-  } finally {
-    formAction.value.formProcess = false;
-  }
-};
-</script>
-
 <style scoped>
 .text-secondary {
   color: #8c8c8c;
